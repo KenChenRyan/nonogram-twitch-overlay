@@ -20,7 +20,8 @@
       fineTuningEnabled: false,
       sharpeningEnabled: false,
       autosendEnabled: false,
-      guardExport: false
+      guardExport: false,
+      disableCooldown: false
     };
 
   const state = {
@@ -112,6 +113,7 @@
     state.fineTuningEnabled = state.uiConfig.fineTuningEnabled;
     state.sharpeningEnabled = state.uiConfig.sharpeningEnabled;
     state.guardExport = state.uiConfig.guardExport;
+    state.disableCooldown = state.uiConfig.disableCooldown;
     state.autosendEnabled = state.uiConfig.autosendEnabled ?? false;
   }
 
@@ -388,7 +390,10 @@
         } catch (e) {
           console.error(e);
         }
-        state.nextSendAt = now + state.COOLDOWN_MS;
+          if (state.disableCooldown)
+          {state.nextSendAt = now;}
+          else
+          {state.nextSendAt = now + state.COOLDOWN_MS;}
       }
       if (state.sendQueue.length === 0 && now >= state.nextSendAt) {
         clearInterval(state.sendLoopTimer);
@@ -418,7 +423,7 @@
   }
 
   function updateCooldownUI() {
-    if (!state.autosendEnabled || (!state.exportFillBtn && !state.exportEmptyBtn)) return;
+    if (!state.autosendEnabled) return;
     const now = Date.now();
     const p = cooldownProgress01();
     const ready = now >= state.nextSendAt && state.sendQueue.length === 0;
@@ -522,6 +527,12 @@
 
     return fn(...args);
   }
+
+    async function disableCooldown(fn, ...args) {
+         if (!state.disableCooldown) {
+      return fn(...args);
+    }
+    }
 
   function findPanelButton() {
     return document.querySelector('button[aria-label="Bits and Points Balances"]') ||
@@ -1476,6 +1487,17 @@
       }
     });
 
+    const { wrapper: disableCooldownDiv } = createCheckboxOption({
+      id: 'chk-disable-cooldown',
+      checked: state.disableCooldown,
+      label: 'Disable cooldown',
+      onChange: checked => {
+        state.disableCooldown = checked;
+        state.uiConfig.disableCooldown = state.disableCooldown;
+        saveUIConfig();
+      }
+    });
+
     panel.appendChild(autosendDiv);
     panel.appendChild(guardDiv);
     panel.appendChild(minDiv);
@@ -1483,6 +1505,7 @@
     panel.appendChild(statusDivToggle);
     panel.appendChild(fineDiv);
     panel.appendChild(sharpenDiv);
+    panel.appendChild(disableCooldownDiv);
 
     state.frame.appendChild(panel);
   }
