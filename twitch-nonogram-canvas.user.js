@@ -423,7 +423,7 @@
   }
 
   function updateCooldownUI() {
-    if (!state.autosendEnabled) return;
+    if (!state.autosendEnabled || (!state.exportFillBtn && !state.exportEmptyBtn)) return;
     const now = Date.now();
     const p = cooldownProgress01();
     const ready = now >= state.nextSendAt && state.sendQueue.length === 0;
