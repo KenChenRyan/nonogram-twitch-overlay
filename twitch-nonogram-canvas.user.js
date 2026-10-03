@@ -391,7 +391,7 @@
           console.error(e);
         }
           if (state.disableCooldown)
-          {state.nextSendAt = now;}
+          {state.nextSendAt = now + 500;}
           else
           {state.nextSendAt = now + state.COOLDOWN_MS;}
       }
